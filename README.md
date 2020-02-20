@@ -43,6 +43,7 @@ chmod +x ./gradlew && ./gradlew build -x test
 ### 3.3. 修改配置
 * 替换证书目录./crypto-config
 * 替换连接文件./network/connection-org1.yaml
+
   **备注：** 如果是按照前面的案例搭建网络，那么crypto-config目录和connection-orgx.yaml所在的位置是：
   ```shell
   cd $GOPATH/src/github.com/hyperledger/fabric-samples/first-network
