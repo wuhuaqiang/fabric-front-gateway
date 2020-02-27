@@ -14,4 +14,6 @@ import org.springframework.context.annotation.Configuration;
 public class ConstantsProperties {
     private String monitorDisk = "/";
     private boolean monitorEnabled = true;
+    private int keepAliveRequests = 100;
+    private int KeepAliveTimeout = 10;
 }
