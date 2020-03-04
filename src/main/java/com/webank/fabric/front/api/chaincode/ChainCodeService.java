@@ -65,6 +65,7 @@ public class ChainCodeService {
         //peers
         Collection<Peer> peers = sdkService.getPeers(EnumSet.of(Peer.PeerRole.ENDORSING_PEER));
         Collection<Peer> peersOfOrg = peers.stream().filter(peer -> peer.getProperties().getProperty("org.hyperledger.fabric.sdk.peer.organization_mspid").equals(mspId)).collect(Collectors.toList());
+        log.debug("deploy contract to peers:{}", JSON.toJSONString(peersOfOrg));
         HFClient hfClient = sdkService.getClient();
 
         //install
