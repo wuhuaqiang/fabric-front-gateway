@@ -55,16 +55,17 @@ public class SdkService {
      * get peers.
      */
     public Collection<Peer> getPeers() {
-        return channel.getPeers();
+        Collection<Peer> peersOnChannel = channel.getPeers();
+        return FrontUtils.removeDuplicatePeers(peersOnChannel);
     }
 
     /**
      * get peers by roles.
      */
     public Collection<Peer> getPeers(EnumSet<Peer.PeerRole> roles) {
-        return channel.getPeers(roles);
+        Collection<Peer> peersOnChannel = channel.getPeers(roles);
+        return FrontUtils.removeDuplicatePeers(peersOnChannel);
     }
-
 
 
     /**
@@ -73,21 +74,19 @@ public class SdkService {
     public Collection<PeerVO> getPeerVOs() {
         Collection<PeerVO> peers = Lists.newArrayList();
         //query peers
-        Optional<Collection<Peer>> peersOptional = Optional.ofNullable(channel.getPeers());
-
-        if (peersOptional.isPresent()) {
-            //foreach peers
-            peersOptional.get().stream().forEach(p -> peers.add(createPeerVO(p)));
-        }
+        Collection<Peer> peersOnChannel = FrontUtils.removeDuplicatePeers(channel.getPeers());
+        //foreach peers
+        peersOnChannel.stream().forEach(p -> peers.add(createPeerVO(p)));
         return peers;
     }
+
 
     /**
      * create object of PeerVO by Peer.
      */
     private PeerVO createPeerVO(Peer peer) {
         String[] protocolDomainPort = peer.getUrl().split(":");
-        String domain = protocolDomainPort[1].substring(2);
+        String domain = FrontUtils.getDomainOfPeer(peer);
         PeerVO peerVO = PeerVO.builder()
                 .peerUrl(peer.getUrl())
                 .peerIp(FrontUtils.isIP(domain) ? domain : null)
@@ -102,11 +101,8 @@ public class SdkService {
      * get transaction by txId.
      */
     public byte[] getTransactionByTxId(String txId) throws InvalidArgumentException, ProposalException {
-        Optional<TransactionInfo> transactionInfoOptional = Optional.ofNullable(channel.queryTransactionByID(txId));
-
-        if (!transactionInfoOptional.isPresent())
-            return null;
-        return transactionInfoOptional.map(trans -> trans.getProcessedTransaction().toByteArray()).get();
+        TransactionInfo transactionInfo = channel.queryTransactionByID(txId);
+        return transactionInfo.getProcessedTransaction().toByteArray();
     }
 
 
@@ -114,24 +110,16 @@ public class SdkService {
      * get blockInfo by block height.
      */
     public byte[] queryBlockByNumber(Long blockNumber) throws ProposalException, InvalidArgumentException {
-        Optional<BlockInfo> blockInfoOptional = Optional.ofNullable(channel.queryBlockByNumber(blockNumber));
-        if (!blockInfoOptional.isPresent())
-            return null;
-
-        return blockInfoOptional.map(blockInfo -> blockInfo.getBlock()).map(block -> block.toByteArray()).get();
-
+        BlockInfo blockInfo = channel.queryBlockByNumber(blockNumber);
+        return blockInfo.getBlock().toByteArray();
     }
 
     /**
      * get blockInfo by block height.
      */
     public byte[] queryBlockByHash(String blockHash) throws ProposalException, InvalidArgumentException {
-        Optional<BlockInfo> blockInfoOptional = Optional.ofNullable(channel.queryBlockByHash(blockHash.getBytes()));
-        if (!blockInfoOptional.isPresent())
-            return null;
-
-        return blockInfoOptional.map(blockInfo -> blockInfo.getBlock()).map(block -> block.toByteArray()).get();
-
+        BlockInfo blockInfo = channel.queryBlockByHash(blockHash.getBytes());
+        return blockInfo.getBlock().toByteArray();
     }
 
 
@@ -139,11 +127,8 @@ public class SdkService {
      * get latest block height of peer.
      */
     public BigInteger getPeerBlockNumber(String peerUrl) throws ProposalException, InvalidArgumentException {
-        Optional<Collection<Peer>> peersOptional = Optional.ofNullable(channel.getPeers());
-        if (!peersOptional.isPresent())
-            return null;
-
-        Peer peer = peersOptional.get().stream().filter(p -> peerUrl.equals(p.getUrl())).findFirst().get();
+        Collection<Peer> peers = channel.getPeers();
+        Peer peer = peers.stream().filter(p -> peerUrl.equals(p.getUrl())).findFirst().get();
         return getPeerBlockHeight(peer);
     }
 
@@ -151,11 +136,8 @@ public class SdkService {
      * get latest block number of channel.
      */
     public BigInteger getChannelBlockNumber() throws ProposalException, InvalidArgumentException {
-        Optional<BlockchainInfo> blockChainInfoOptional = Optional.ofNullable(channel.queryBlockchainInfo());
-        if (!blockChainInfoOptional.isPresent())
-            return null;
-
-        return BigInteger.valueOf(blockChainInfoOptional.map(chainInfo -> chainInfo.getHeight()).get());
+        BlockchainInfo blockchainInfo = channel.queryBlockchainInfo();
+        return BigInteger.valueOf(blockchainInfo.getHeight());
 
     }
 
@@ -163,11 +145,8 @@ public class SdkService {
      * get latest block height of peer.
      */
     public BigInteger getPeerBlockHeight(Peer peer) throws ProposalException, InvalidArgumentException {
-        Optional<BlockchainInfo> blockChainInfoOptional = Optional.ofNullable(channel.queryBlockchainInfo(peer));
-        if (!blockChainInfoOptional.isPresent())
-            return null;
-
-        return BigInteger.valueOf(blockChainInfoOptional.map(chainInfo -> chainInfo.getHeight()).get());
+        BlockchainInfo blockchainInfo = channel.queryBlockchainInfo(peer);
+        return BigInteger.valueOf(blockchainInfo.getHeight());
 
     }
 
@@ -178,9 +157,8 @@ public class SdkService {
         Optional<BlockInfo> blockInfoOptional = Optional.ofNullable(channel.queryBlockByTransactionID(transactionId));
         if (!blockInfoOptional.isPresent())
             return null;
-
-        return blockInfoOptional.map(blockInfo -> blockInfo.getBlock()).map(block -> block.toByteArray()).get();
-
+        BlockInfo blockInfo = channel.queryBlockByTransactionID(transactionId);
+        return blockInfo.getBlock().toByteArray();
     }
 
     /**

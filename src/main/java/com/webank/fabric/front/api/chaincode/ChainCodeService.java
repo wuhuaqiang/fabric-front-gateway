@@ -11,6 +11,7 @@ import com.webank.fabric.front.commons.pojo.chaincode.ProposalResponseVO;
 import com.webank.fabric.front.commons.pojo.chaincode.ReqDeployVO;
 import com.webank.fabric.front.commons.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
@@ -64,7 +65,7 @@ public class ChainCodeService {
 
         //peers
         Collection<Peer> peers = sdkService.getPeers(EnumSet.of(Peer.PeerRole.ENDORSING_PEER));
-        Collection<Peer> peersOfOrg = peers.stream().filter(peer -> peer.getProperties().getProperty("org.hyperledger.fabric.sdk.peer.organization_mspid").equals(mspId)).collect(Collectors.toList());
+        Collection<Peer> peersOfOrg = peers.stream().filter(peer -> StringUtils.isBlank(peer.getProperties().getProperty("hostnameOverride")) && peer.getProperties().getProperty("org.hyperledger.fabric.sdk.peer.organization_mspid").equals(mspId)).collect(Collectors.toList());
         log.debug("deploy contract to peers:{}", JSON.toJSONString(peersOfOrg));
         HFClient hfClient = sdkService.getClient();
 

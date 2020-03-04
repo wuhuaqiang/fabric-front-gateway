@@ -5,6 +5,7 @@ import com.webank.fabric.front.commons.pojo.base.ConstantCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hyperledger.fabric.sdk.Peer;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -13,7 +14,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -97,4 +100,33 @@ public class FrontUtils {
         return localTimeStr;
     }
 
+
+    /**
+     * Get the node's domain name.
+     *
+     * @param peer
+     * @return
+     */
+    public static String getDomainOfPeer(Peer peer) {
+        String[] protocolDomainPort = peer.getUrl().split(":");
+        String domain = protocolDomainPort[1].substring(2);
+        return domain;
+    }
+
+    /**
+     * Filter duplicate peers.
+     *
+     * @param peers
+     * @return
+     */
+    public static Collection<Peer> removeDuplicatePeers(Collection<Peer> peers) {
+        List<Peer> list = new ArrayList<>();
+        for (Peer peer : peers) {
+            String domain = FrontUtils.getDomainOfPeer(peer);
+            if (!FrontUtils.isIP(domain)) {
+                list.add(peer);
+            }
+        }
+        return list;
+    }
 }

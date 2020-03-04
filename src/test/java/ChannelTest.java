@@ -36,7 +36,6 @@ public class ChannelTest {
 
     @Test
     public void transactionTest() throws IOException, InterruptedException, TimeoutException, ContractException {
-
         String msp = network.getGateway().getIdentity().getMspId();
         // Obtain a smart contract deployed on the network.
         Contract contract = network.getContract("mycc");
